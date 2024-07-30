@@ -273,6 +273,7 @@ mac80211_hostapd_setup_base() {
 				case "$channel" in
 					36|40|44|48|52|56|60|64) idx=50;;
 					100|104|108|112|116|120|124|128) idx=114;;
+					149|153|157|161|165|169|173|177) idx=163;;
 				esac
 			fi
 			enable_ac=1
@@ -1020,7 +1021,7 @@ $1 ~ /Band/ {
 }
 
 band_match && $3 == "MHz" && $4 == channel {
-	print $2
+	print int($2)
 	exit
 }
 '

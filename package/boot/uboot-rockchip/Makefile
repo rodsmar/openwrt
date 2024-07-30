@@ -5,9 +5,9 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_VERSION:=2024.01
+PKG_VERSION:=2024.07
 PKG_RELEASE:=1
-PKG_HASH:=b99611f1ed237bf3541bdc8434b68c96a6e05967061f992443cb30aabebef5b3
+PKG_HASH:=f591da9ab90ef3d6b3d173766d0ddff90c4ed7330680897486117df390d83c8f
 
 PKG_MAINTAINER:=Tobias Maedel <openwrt@tbspace.de>
 
@@ -23,6 +23,24 @@ define U-Boot/Default
   HIDDEN:=1
 endef
 
+
+# RK3308 boards
+
+define U-Boot/rk3308/Default
+  BUILD_SUBTARGET:=armv8
+  DEPENDS:=+PACKAGE_u-boot-$(1):trusted-firmware-a-rk3308
+  ATF:=rk3308_bl31_v2.26.elf
+  TPL:=rk3308_ddr_589MHz_uart2_m1_v2.07.bin
+endef
+
+define U-Boot/rock-pi-s-rk3308
+  $(U-Boot/rk3308/Default)
+  DEPENDS:=+PACKAGE_u-boot-$(1):trusted-firmware-a-rk3308-rock-pi-s
+  TPL:=rk3308_ddr_589MHz_uart0_m0_v2.07.bin
+  NAME:=ROCK Pi S
+  BUILD_DEVICES:= \
+    radxa_rock-pi-s
+endef
 
 # RK3328 boards
 
@@ -88,6 +106,13 @@ define U-Boot/rock-pi-e-rk3328
     radxa_rock-pi-e
 endef
 
+define U-Boot/rock-pi-e-v3-rk3328
+  $(U-Boot/rk3328/Default)
+  NAME:=ROCK Pi E v3.0
+  BUILD_DEVICES:= \
+    radxa_rock-pi-e-v3
+endef
+
 # RK3399 boards
 
 define U-Boot/rk3399/Default
@@ -131,8 +156,8 @@ endef
 define U-Boot/rk3566/Default
   BUILD_SUBTARGET:=armv8
   DEPENDS:=+PACKAGE_u-boot-$(1):trusted-firmware-a-rk3566
-  ATF:=rk3568_bl31_v1.43.elf
-  TPL:=rk3566_ddr_1056MHz_v1.18.bin
+  ATF:=rk3568_bl31_v1.44.elf
+  TPL:=rk3566_ddr_1056MHz_v1.21.bin
 endef
 
 define U-Boot/radxa-cm3-io-rk3566
@@ -147,8 +172,15 @@ endef
 define U-Boot/rk3568/Default
   BUILD_SUBTARGET:=armv8
   DEPENDS:=+PACKAGE_u-boot-$(1):trusted-firmware-a-rk3568
-  ATF:=rk3568_bl31_v1.43.elf
-  TPL:=rk3568_ddr_1560MHz_v1.18.bin
+  ATF:=rk3568_bl31_v1.44.elf
+  TPL:=rk3568_ddr_1560MHz_v1.21.bin
+endef
+
+define U-Boot/bpi-r2-pro-rk3568
+  $(U-Boot/rk3568/Default)
+  NAME:=Bananapi-R2 Pro
+  BUILD_DEVICES:= \
+    sinovoip_bpi-r2-pro
 endef
 
 define U-Boot/nanopi-r5c-rk3568
@@ -165,11 +197,28 @@ define U-Boot/nanopi-r5s-rk3568
     friendlyarm_nanopi-r5s
 endef
 
+define U-Boot/radxa-e25-rk3568
+  $(U-Boot/rk3568/Default)
+  DEPENDS:=+PACKAGE_u-boot-$(1):trusted-firmware-a-rk3568-e25
+  TPL:=rk3568_ddr_1560MHz_uart2_m0_115200_v1.21.bin
+  NAME:=E25
+  BUILD_DEVICES:= \
+    radxa_e25
+endef
+
+define U-Boot/rock-3a-rk3568
+  $(U-Boot/rk3568/Default)
+  NAME:=ROCK 3A
+  BUILD_DEVICES:= \
+    radxa_rock-3a
+endef
+
 UBOOT_TARGETS := \
   nanopc-t4-rk3399 \
   nanopi-r4s-rk3399 \
   rock-pi-4-rk3399 \
   rockpro64-rk3399 \
+  rock-pi-s-rk3308 \
   nanopi-r2c-rk3328 \
   nanopi-r2c-plus-rk3328 \
   nanopi-r2s-rk3328 \
@@ -178,14 +227,17 @@ UBOOT_TARGETS := \
   roc-cc-rk3328 \
   rock64-rk3328 \
   rock-pi-e-rk3328 \
+  rock-pi-e-v3-rk3328 \
   radxa-cm3-io-rk3566 \
+  bpi-r2-pro-rk3568 \
   nanopi-r5c-rk3568 \
-  nanopi-r5s-rk3568
+  nanopi-r5s-rk3568 \
+  radxa-e25-rk3568 \
+  rock-3a-rk3568
 
 UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
 
 UBOOT_CUSTOMIZE_CONFIG := \
-	--disable SPL_FIT_SIGNATURE \
 	--disable TOOLS_MKEFICAPSULE \
 	--set-str MKIMAGE_DTC_PATH $(PKG_BUILD_DIR)/scripts/dtc/dtc
 
@@ -195,8 +247,7 @@ UBOOT_MAKE_FLAGS += \
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)
-	$(CP) $(PKG_BUILD_DIR)/idbloader.img $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-idbloader.img
-	$(CP) $(PKG_BUILD_DIR)/u-boot.itb $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-u-boot.itb
+	$(CP) $(PKG_BUILD_DIR)/u-boot-rockchip.bin $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-u-boot-rockchip.bin
 endef
 
 define Package/u-boot/install/default
