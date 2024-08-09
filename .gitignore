@@ -4,6 +4,7 @@
 /env
 /dl
 /.config
+/.config-*
 /.config.old
 /.toolchain_build_ver
 /bin
