@@ -118,7 +118,10 @@ define Device/tplink_archer-c6-v2-us
   DEVICE_ALT0_MODEL := Archer A6
   DEVICE_ALT0_VARIANT := v2 (US/TW)
   TPLINK_BOARD_ID := ARCHER-C6-V2-US
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct kmod-dsa-qca8k \
+		     kmod-phy-qca83xx -swconfig -kmod-swconfig
+  DEVICE_COMPAT_VERSION := 1.1
+  DEVICE_COMPAT_MESSAGE := Config cannot be migrated from swconfig to DSA
 endef
 TARGET_DEVICES += tplink_archer-c6-v2-us
 
