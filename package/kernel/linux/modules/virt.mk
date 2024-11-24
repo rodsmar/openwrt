@@ -81,7 +81,8 @@ define KernelPackage/vfio
   DEPENDS:=@TARGET_x86_64||TARGET_armsr_armv8
   KCONFIG:= \
 	CONFIG_VFIO \
-	CONFIG_VFIO_NOIOMMU=n \
+	CONFIG_VFIO_NOIOMMU=y \
+	CONFIG_VFIO_VIRQFD=y
 	CONFIG_VFIO_MDEV=n
   FILES:= \
 	$(LINUX_DIR)/drivers/vfio/vfio.ko \
@@ -102,6 +103,8 @@ define KernelPackage/vfio-pci
   DEPENDS:=@TARGET_x86_64||TARGET_armsr_armv8 @PCI_SUPPORT +kmod-vfio +kmod-irqbypass
   KCONFIG:= \
 	CONFIG_VFIO_PCI \
+	CONFIG_NUMA=y \
+	CONFIG_VFIO_PCI_MMAP=y \
 	CONFIG_VFIO_PCI_IGD=n
   FILES:= \
 	$(LINUX_DIR)/drivers/vfio/pci/vfio-pci-core.ko \
