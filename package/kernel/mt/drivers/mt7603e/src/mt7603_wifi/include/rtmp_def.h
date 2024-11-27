@@ -2350,7 +2350,7 @@ enum {
 };
 #endif /* SMART_CARRIER_SENSE_SUPPORT */
 
-#define ABS(_x, _y) ((_x) > (_y)) ? ((_x) -(_y)) : ((_y) -(_x))
+#define RTMP_ABS(_x, _y) ((_x) > (_y)) ? ((_x) -(_y)) : ((_y) -(_x))
 
 #define A2Dec(_X, _p) 				\
 {									\
