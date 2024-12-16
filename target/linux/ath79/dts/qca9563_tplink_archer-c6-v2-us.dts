@@ -44,24 +44,6 @@
 			linux,default-trigger = "phy0tpt";
 		};
 
-		lan {
-			function = LED_FUNCTION_LAN;
-			color = <LED_COLOR_ID_GREEN>;
-			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
-		};
-
-		wan {
-			function = LED_FUNCTION_WAN;
-			color = <LED_COLOR_ID_GREEN>;
-			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
-		};
-
-		wan_fail {
-			function = LED_FUNCTION_WAN;
-			color = <LED_COLOR_ID_AMBER>;
-			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
-		};
-
 		wps {
 			function = LED_FUNCTION_WPS;
 			color = <LED_COLOR_ID_GREEN>;
