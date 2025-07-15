@@ -1,4 +1,4 @@
-From 4d8bb032a13e467479bf852a7c72c693814bc11b Mon Sep 17 00:00:00 2001
+From 664d47ddcc7ed90b5d2d73b2040759bf0bf75714 Mon Sep 17 00:00:00 2001
 From: Benjamin Lin <benjamin-jw.lin@mediatek.com>
 Date: Mon, 29 Jan 2024 11:28:41 +0800
 Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
@@ -13,17 +13,19 @@ Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
  mt7915/mt7915.h   |  4 +++
  6 files changed, 127 insertions(+)
 
+diff --git a/mt76_connac_mcu.h b/mt76_connac_mcu.h
+index 6873ce14..46dcd1c6 100644
 --- a/mt76_connac_mcu.h
 +++ b/mt76_connac_mcu.h
-@@ -1042,6 +1042,7 @@ enum {
+@@ -1026,6 +1026,7 @@ enum {
  	MCU_EXT_EVENT_ASSERT_DUMP = 0x23,
  	MCU_EXT_EVENT_RDD_REPORT = 0x3a,
  	MCU_EXT_EVENT_CSA_NOTIFY = 0x4f,
 +	MCU_EXT_EVENT_BSS_ACQ_PKT_CNT = 0x52,
  	MCU_EXT_EVENT_WA_TX_STAT = 0x74,
  	MCU_EXT_EVENT_BCC_NOTIFY = 0x75,
- 	MCU_EXT_EVENT_WF_RF_PIN_CTRL = 0x9a,
-@@ -1246,6 +1247,7 @@ enum {
+ 	MCU_EXT_EVENT_MURU_CTRL = 0x9f,
+@@ -1222,6 +1223,7 @@ enum {
  	MCU_EXT_CMD_TXDPD_CAL = 0x60,
  	MCU_EXT_CMD_CAL_CACHE = 0x67,
  	MCU_EXT_CMD_RED_ENABLE = 0x68,
@@ -31,9 +33,11 @@ Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
  	MCU_EXT_CMD_CP_SUPPORT = 0x75,
  	MCU_EXT_CMD_SET_RADAR_TH = 0x7c,
  	MCU_EXT_CMD_SET_RDD_PATTERN = 0x7d,
+diff --git a/mt7915/init.c b/mt7915/init.c
+index 3b352fe9..46762827 100644
 --- a/mt7915/init.c
 +++ b/mt7915/init.c
-@@ -1230,6 +1230,8 @@ int mt7915_register_device(struct mt7915
+@@ -1219,6 +1219,8 @@ int mt7915_register_device(struct mt7915_dev *dev)
  	INIT_WORK(&dev->dump_work, mt7915_mac_dump_work);
  	mutex_init(&dev->dump_mutex);
  
@@ -42,9 +46,11 @@ Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
  	dev->dbdc_support = mt7915_band_config(dev);
  
  	phy2 = mt7915_alloc_ext_phy(dev);
+diff --git a/mt7915/mac.c b/mt7915/mac.c
+index ada3a7f4..e167e7b6 100644
 --- a/mt7915/mac.c
 +++ b/mt7915/mac.c
-@@ -2025,6 +2025,8 @@ void mt7915_mac_work(struct work_struct
+@@ -2032,6 +2032,8 @@ void mt7915_mac_work(struct work_struct *work)
  
  	mt76_update_survey(mphy);
  	if (++mphy->mac_work_count == 5) {
@@ -53,7 +59,7 @@ Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
  		mphy->mac_work_count = 0;
  
  		mt7915_mac_update_stats(phy);
-@@ -2032,6 +2034,18 @@ void mt7915_mac_work(struct work_struct
+@@ -2039,6 +2041,18 @@ void mt7915_mac_work(struct work_struct *work)
  
  		if (phy->dev->muru_debug)
  			mt7915_mcu_muru_debug_get(phy);
@@ -71,10 +77,12 @@ Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
 +		}
  	}
  
- 	mutex_unlock(&mphy->dev->mutex);
+ 	if (++phy->stats_work_count == 10) {
+diff --git a/mt7915/mcu.c b/mt7915/mcu.c
+index a71562fb..9126e62f 100644
 --- a/mt7915/mcu.c
 +++ b/mt7915/mcu.c
-@@ -402,6 +402,93 @@ mt7915_mcu_rx_bcc_notify(struct mt7915_d
+@@ -354,6 +354,93 @@ mt7915_mcu_rx_bcc_notify(struct mt7915_dev *dev, struct sk_buff *skb)
  			mt7915_mcu_cca_finish, mphy->hw);
  }
  
@@ -168,7 +176,7 @@ Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
  static void
  mt7915_mcu_rx_ext_event(struct mt7915_dev *dev, struct sk_buff *skb)
  {
-@@ -424,6 +511,9 @@ mt7915_mcu_rx_ext_event(struct mt7915_de
+@@ -376,6 +463,9 @@ mt7915_mcu_rx_ext_event(struct mt7915_dev *dev, struct sk_buff *skb)
  	case MCU_EXT_EVENT_BCC_NOTIFY:
  		mt7915_mcu_rx_bcc_notify(dev, skb);
  		break;
@@ -178,9 +186,11 @@ Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
  	default:
  		break;
  	}
+diff --git a/mt7915/mcu.h b/mt7915/mcu.h
+index 8f365461..fa0847d5 100644
 --- a/mt7915/mcu.h
 +++ b/mt7915/mcu.h
-@@ -274,10 +274,25 @@ enum {
+@@ -329,10 +329,25 @@ enum {
  	MCU_WA_PARAM_CMD_DEBUG,
  };
  
@@ -206,9 +216,11 @@ Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
  	MCU_WA_PARAM_RED_SETTING = 0x40,
  };
  
+diff --git a/mt7915/mt7915.h b/mt7915/mt7915.h
+index e1801d5b..89156f35 100644
 --- a/mt7915/mt7915.h
 +++ b/mt7915/mt7915.h
-@@ -320,6 +320,9 @@ struct mt7915_dev {
+@@ -326,6 +326,9 @@ struct mt7915_dev {
  	struct reset_control *rstc;
  	void __iomem *dcm;
  	void __iomem *sku;
@@ -218,7 +230,7 @@ Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
  };
  
  enum {
-@@ -522,6 +525,7 @@ int mt7915_mcu_fw_log_2_host(struct mt79
+@@ -516,6 +519,7 @@ int mt7915_mcu_fw_log_2_host(struct mt7915_dev *dev, u8 type, u8 ctrl);
  int mt7915_mcu_fw_dbg_ctrl(struct mt7915_dev *dev, u32 module, u8 level);
  void mt7915_mcu_rx_event(struct mt7915_dev *dev, struct sk_buff *skb);
  void mt7915_mcu_exit(struct mt7915_dev *dev);
@@ -226,3 +238,6 @@ Subject: [PATCH 10/21] wifi: mt76: mt7915: add support for WMM PBC
  
  static inline u16 mt7915_wtbl_size(struct mt7915_dev *dev)
  {
+-- 
+2.18.0
+

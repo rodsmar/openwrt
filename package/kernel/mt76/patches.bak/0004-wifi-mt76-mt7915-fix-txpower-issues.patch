@@ -1,4 +1,4 @@
-From 47f124ba1718259555245eb9c3ad3fb2b4fd0a67 Mon Sep 17 00:00:00 2001
+From 349e821372153fddd6abcd295e50753e5f040f1f Mon Sep 17 00:00:00 2001
 From: Evelyn Tsai <evelyn.tsai@mediatek.com>
 Date: Sat, 29 Jul 2023 04:53:47 +0800
 Subject: [PATCH 04/21] wifi: mt76: mt7915: fix txpower issues
@@ -9,9 +9,11 @@ Subject: [PATCH 04/21] wifi: mt76: mt7915: fix txpower issues
  mt7915/main.c    |  1 +
  3 files changed, 28 insertions(+), 23 deletions(-)
 
+diff --git a/eeprom.c b/eeprom.c
+index 0bc66cc1..ecd09c03 100644
 --- a/eeprom.c
 +++ b/eeprom.c
-@@ -362,7 +362,7 @@ s8 mt76_get_rate_power_limits(struct mt7
+@@ -343,7 +343,7 @@ s8 mt76_get_rate_power_limits(struct mt76_phy *phy,
  	u32 ru_rates = ARRAY_SIZE(dest->ru[0]);
  	char band;
  	size_t len;
@@ -20,9 +22,11 @@ Subject: [PATCH 04/21] wifi: mt76: mt7915: fix txpower issues
  	s8 txs_delta;
  
  	if (!mcs_rates)
+diff --git a/mt7915/debugfs.c b/mt7915/debugfs.c
+index 57801388..894e2cd7 100644
 --- a/mt7915/debugfs.c
 +++ b/mt7915/debugfs.c
-@@ -972,9 +972,9 @@ mt7915_xmit_queues_show(struct seq_file
+@@ -951,9 +951,9 @@ mt7915_xmit_queues_show(struct seq_file *file, void *data)
  
  DEFINE_SHOW_ATTRIBUTE(mt7915_xmit_queues);
  
@@ -34,7 +38,7 @@ Subject: [PATCH 04/21] wifi: mt76: mt7915: fix txpower issues
  	for (i = 0; i < mt7915_sku_group_len[SKU_##rate]; i++, offs++)		\
  		len += scnprintf(buf + len, sz - len, " %6d", txpwr[offs]);	\
  	len += scnprintf(buf + len, sz - len, "\n");				\
-@@ -1016,43 +1016,47 @@ mt7915_rate_txpower_get(struct file *fil
+@@ -995,43 +995,47 @@ mt7915_rate_txpower_get(struct file *file, char __user *user_buf,
  	len += scnprintf(buf + len, sz - len,
  			 "\nPhy%d Tx power table (channel %d)\n",
  			 phy != &dev->phy, phy->mt76->chandef.chan->hw_value);
@@ -102,9 +106,11 @@ Subject: [PATCH 04/21] wifi: mt76: mt7915: fix txpower issues
  
  	reg = is_mt7915(&dev->mt76) ? MT_WF_PHY_TPC_CTRL_STAT(band) :
  	      MT_WF_PHY_TPC_CTRL_STAT_MT7916(band);
+diff --git a/mt7915/main.c b/mt7915/main.c
+index b2a6278f..a2ad918d 100644
 --- a/mt7915/main.c
 +++ b/mt7915/main.c
-@@ -1139,6 +1139,7 @@ mt7915_set_antenna(struct ieee80211_hw *
+@@ -1080,6 +1080,7 @@ mt7915_set_antenna(struct ieee80211_hw *hw, u32 tx_ant, u32 rx_ant)
  	mt76_set_stream_caps(phy->mt76, true);
  	mt7915_set_stream_vht_txbf_caps(phy);
  	mt7915_set_stream_he_caps(phy);
@@ -112,3 +118,6 @@ Subject: [PATCH 04/21] wifi: mt76: mt7915: fix txpower issues
  
  	mutex_unlock(&dev->mt76.mutex);
  
+-- 
+2.18.0
+
